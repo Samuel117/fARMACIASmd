@@ -7,6 +7,8 @@ use App\Http\Controllers\Api\BranchController;
 use App\Http\Controllers\Api\BranchStockController;
 use App\Http\Controllers\Api\StockMovementController;
 use App\Http\Controllers\Api\SaleController;
+use App\Http\Controllers\Api\ReportController;
+use App\Http\Controllers\Api\DashboardController;
 
 Route::post('/auth/login', [AuthController::class, 'login']);
 
@@ -25,4 +27,11 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/sales', [SaleController::class, 'index']);
     Route::post('/sales', [SaleController::class, 'store']);
     Route::get('/sales/{sale}', [SaleController::class, 'show']);
+    Route::post('/sales/{sale}/cancel', [SaleController::class, 'cancel']);
+
+    Route::get('/reports/sales', [ReportController::class, 'sales']);
+    Route::get('/reports/top-products', [ReportController::class, 'topProducts']);
+    Route::get('/reports/low-stock', [ReportController::class, 'lowStock']);
+
+    Route::get('/dashboard', [DashboardController::class, 'index']);
 });

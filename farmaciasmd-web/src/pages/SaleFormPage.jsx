@@ -36,6 +36,27 @@ export default function SaleFormPage() {
 
   const addItem = () => setItems((prev) => [...prev, emptyItem()]);
 
+  // Al cambiar producto: si ya existe en otra fila, acumular cantidad
+  const handleProductChange = (index, newProductId) => {
+    if (!newProductId) { setItem(index, "product_id", ""); return; }
+    const existingIndex = items.findIndex(
+      (it, i) => i !== index && String(it.product_id) === String(newProductId)
+    );
+    if (existingIndex !== -1) {
+      setItems((prev) => {
+        const updated = prev.map((it, i) => {
+          if (i === existingIndex) {
+            return { ...it, quantity: parseInt(it.quantity) + parseInt(prev[index].quantity || 1) };
+          }
+          return it;
+        }).filter((_, i) => i !== index);
+        return updated;
+      });
+    } else {
+      setItem(index, "product_id", newProductId);
+    }
+  };
+
   const removeItem = (index) =>
     setItems((prev) => prev.filter((_, i) => i !== index));
 
@@ -119,7 +140,7 @@ export default function SaleFormPage() {
                   <td>
                     <select
                       value={item.product_id}
-                      onChange={(e) => setItem(i, "product_id", e.target.value)}
+                      onChange={(e) => handleProductChange(i, e.target.value)}
                       style={{ width: "100%" }}
                       required
                     >

@@ -26,7 +26,9 @@
       "Bash(npm install axios)",
       "Bash(curl -s -X POST http://localhost:8000/api/auth/login -H \"Content-Type: application/json\" -d \"{\"\"email\"\":\"\"admin@farmaciasmd.local\"\",\"\"password\"\":\"\"Admin1234!\"\"}\")",
       "Bash(mv \"f:/Samuel/fARMACIASmd/farmaciasmd-api/app/Http/Controllers/AuthController.php\" \"f:/Samuel/fARMACIASmd/farmaciasmd-api/app/Http/Controllers/Api/AuthController.php\")",
-      "Bash(php artisan optimize:clear)"
+      "Bash(php artisan optimize:clear)",
+      "Bash(php artisan:*)",
+      "WebFetch(domain:github.com)"
     ]
   }
 }

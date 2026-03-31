@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { listBranches } from "../api/branches";
-import { listSales } from "../api/sales";
+import { listSales, cancelSale } from "../api/sales";
 
 export default function SalesListPage() {
   const [branches, setBranches] = useState([]);
@@ -11,6 +11,20 @@ export default function SalesListPage() {
   const [page, setPage] = useState(1);
   const [expandedId, setExpandedId] = useState(null);
   const [err, setErr] = useState(null);
+  const [cancelling, setCancelling] = useState(null);
+
+  const handleCancel = async (sale) => {
+    if (!confirm(`¿Anular la venta #${sale.id}? Se revertirá el stock.`)) return;
+    setCancelling(sale.id);
+    try {
+      await cancelSale(sale.id);
+      setSales((prev) => prev.map((s) => s.id === sale.id ? { ...s, status: "cancelled" } : s));
+    } catch (ex) {
+      setErr(ex?.response?.data?.message ?? "Error al anular la venta.");
+    } finally {
+      setCancelling(null);
+    }
+  };
 
   useEffect(() => {
     listBranches().then((r) => {
@@ -70,6 +84,7 @@ export default function SalesListPage() {
             <th>Sucursal</th>
             <th>Total</th>
             <th>Fecha</th>
+            <th>Estado</th>
             <th>Detalle</th>
           </tr>
         </thead>
@@ -83,15 +98,33 @@ export default function SalesListPage() {
           )}
           {sales.map((sale) => (
             <>
-              <tr key={sale.id} style={{ borderBottom: "1px solid #333" }}>
+              <tr key={sale.id} style={{ borderBottom: "1px solid #333", opacity: sale.status === "cancelled" ? 0.55 : 1 }}>
                 <td>{sale.id}</td>
                 <td>{sale.branch?.name ?? "—"}</td>
-                <td>${parseFloat(sale.total).toFixed(2)}</td>
+                <td style={{ textDecoration: sale.status === "cancelled" ? "line-through" : "none" }}>
+                  ${parseFloat(sale.total).toFixed(2)}
+                </td>
                 <td>{new Date(sale.created_at).toLocaleString("es-MX")}</td>
                 <td>
-                  <button onClick={() => setExpandedId(expandedId === sale.id ? null : sale.id)}>
-                    {expandedId === sale.id ? "Ocultar" : "Ver"}
-                  </button>
+                  {sale.status === "cancelled"
+                    ? <span style={{ color: "crimson", fontSize: 12 }}>Anulada</span>
+                    : <span style={{ color: "#2f9e44", fontSize: 12 }}>Activa</span>}
+                </td>
+                <td>
+                  <div style={{ display: "flex", gap: 6 }}>
+                    <button onClick={() => setExpandedId(expandedId === sale.id ? null : sale.id)}>
+                      {expandedId === sale.id ? "Ocultar" : "Ver"}
+                    </button>
+                    {sale.status === "active" && (
+                      <button
+                        onClick={() => handleCancel(sale)}
+                        disabled={cancelling === sale.id}
+                        style={{ color: "crimson" }}
+                      >
+                        {cancelling === sale.id ? "…" : "Anular"}
+                      </button>
+                    )}
+                  </div>
                 </td>
               </tr>
 

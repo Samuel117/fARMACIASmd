@@ -11,10 +11,13 @@ class Sale extends Model
         'user_id',
         'total',
         'notes',
+        'status',
+        'cancelled_at',
     ];
 
     protected $casts = [
-        'total' => 'decimal:2',
+        'total'        => 'decimal:2',
+        'cancelled_at' => 'datetime',
     ];
 
     public function branch()

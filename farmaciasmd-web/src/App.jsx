@@ -9,6 +9,7 @@ import BranchesPage from "./pages/BranchesPage";
 import BranchInventoryPage from "./pages/BranchInventoryPage";
 import SalesListPage from "./pages/SalesListPage";
 import SaleFormPage from "./pages/SaleFormPage";
+import ReportsPage from "./pages/ReportsPage";
 
 function Layout({ children }) {
   return (
@@ -19,6 +20,7 @@ function Layout({ children }) {
         <Link to="/branches">Sucursales</Link>
         <Link to="/branch-inventory">Inventario por sucursal</Link>
         <Link to="/sales">Ventas</Link>
+        <Link to="/reports">Reportes</Link>
       </nav>
       {children}
     </div>
@@ -100,6 +102,15 @@ export default function App() {
             element={
               <RequireAuth>
                 <Layout><SaleFormPage /></Layout>
+              </RequireAuth>
+            }
+          />
+
+          <Route
+            path="/reports"
+            element={
+              <RequireAuth>
+                <Layout><ReportsPage /></Layout>
               </RequireAuth>
             }
           />

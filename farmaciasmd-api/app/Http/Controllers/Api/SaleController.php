@@ -44,6 +44,59 @@ class SaleController extends Controller
         ]);
     }
 
+    public function cancel(Request $request, Sale $sale)
+    {
+        if ($sale->status === 'cancelled') {
+            return response()->json([
+                'success'   => false,
+                'message'   => 'La venta ya fue anulada.',
+                'data'      => null,
+                'errors'    => null,
+                'timestamp' => now()->toISOString(),
+            ], 422);
+        }
+
+        return DB::transaction(function () use ($sale, $request) {
+            foreach ($sale->items as $item) {
+                $stock = BranchProductStock::where('branch_id', $sale->branch_id)
+                    ->where('product_id', $item->product_id)
+                    ->first();
+
+                if ($stock) {
+                    $stock->increment('stock', $item->quantity);
+                } else {
+                    BranchProductStock::create([
+                        'branch_id'  => $sale->branch_id,
+                        'product_id' => $item->product_id,
+                        'stock'      => $item->quantity,
+                    ]);
+                }
+
+                StockMovement::create([
+                    'branch_id'  => $sale->branch_id,
+                    'product_id' => $item->product_id,
+                    'type'       => 'entry',
+                    'quantity'   => $item->quantity,
+                    'notes'      => "Anulación venta #{$sale->id}",
+                    'user_id'    => $request->user()?->id,
+                ]);
+            }
+
+            $sale->update([
+                'status'       => 'cancelled',
+                'cancelled_at' => now(),
+            ]);
+
+            return response()->json([
+                'success'   => true,
+                'message'   => 'Venta anulada correctamente.',
+                'data'      => $sale->fresh(['branch', 'items.product']),
+                'errors'    => null,
+                'timestamp' => now()->toISOString(),
+            ]);
+        });
+    }
+
     public function store(Request $request)
     {
         $data = $request->validate([
