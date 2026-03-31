@@ -28,7 +28,8 @@
       "Bash(mv \"f:/Samuel/fARMACIASmd/farmaciasmd-api/app/Http/Controllers/AuthController.php\" \"f:/Samuel/fARMACIASmd/farmaciasmd-api/app/Http/Controllers/Api/AuthController.php\")",
       "Bash(php artisan optimize:clear)",
       "Bash(php artisan:*)",
-      "WebFetch(domain:github.com)"
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:docs.railway.com)"
     ]
   }
 }

@@ -10,6 +10,8 @@ use App\Http\Controllers\Api\SaleController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\DashboardController;
 
+Route::get('/health', fn() => response()->json(['status' => 'ok']));
+
 Route::post('/auth/login', [AuthController::class, 'login']);
 
 Route::middleware('auth:sanctum')->group(function () {
