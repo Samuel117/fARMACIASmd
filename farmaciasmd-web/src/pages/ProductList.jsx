@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import * as ProductsApi from "../api/products";
 import { Link } from "react-router-dom";
+import { useAuth } from "../auth/AuthContext";
 
 export default function ProductsList() {
+  const { isAdmin } = useAuth();
   const [q, setQ] = useState("");
   const [page, setPage] = useState(1);
   const [resp, setResp] = useState(null);
@@ -32,7 +34,7 @@ export default function ProductsList() {
           style={{ flex: 1 }}
         />
         <button onClick={() => { setPage(1); load(); }}>Buscar</button>
-        <Link to="/products/new"><button>Nuevo</button></Link>
+        {isAdmin() && <Link to="/products/new"><button>Nuevo</button></Link>}
       </div>
 
       {err && <div style={{ color: "crimson" }}>{err}</div>}
@@ -40,23 +42,32 @@ export default function ProductsList() {
       <table width="100%" cellPadding="8" style={{ borderCollapse: "collapse" }}>
         <thead>
           <tr style={{ textAlign: "left", borderBottom: "1px solid #444" }}>
+            <th>Imagen</th>
             <th>SKU</th>
             <th>Nombre</th>
             <th>Precio</th>
             <th>Activo</th>
-            <th></th>
+            {isAdmin() && <th></th>}
           </tr>
         </thead>
         <tbody>
           {resp?.data?.map((p) => (
             <tr key={p.id} style={{ borderBottom: "1px solid #333" }}>
+              <td>
+                {p.image_url
+                  ? <img src={p.image_url} alt={p.name} style={{ width: 48, height: 48, objectFit: "cover", borderRadius: 4 }} />
+                  : <div style={{ width: 48, height: 48, background: "#333", borderRadius: 4, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 10, color: "#888" }}>Sin img</div>
+                }
+              </td>
               <td>{p.sku}</td>
               <td>{p.name}</td>
-              <td>{p.price}</td>
+              <td>${Number(p.price).toFixed(2)}</td>
               <td>{p.active ? "Sí" : "No"}</td>
-              <td style={{ display: "flex", gap: 8 }}>
-                <Link to={`/products/${p.id}/edit`}><button>Editar</button></Link>
-              </td>
+              {isAdmin() && (
+                <td style={{ display: "flex", gap: 8 }}>
+                  <Link to={`/products/${p.id}/edit`}><button>Editar</button></Link>
+                </td>
+              )}
             </tr>
           ))}
         </tbody>

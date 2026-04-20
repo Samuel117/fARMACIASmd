@@ -8,6 +8,7 @@ const empty = {
   brand: "",
   category: "",
   description: "",
+  image_url: "",
   price: 0,
   min_stock: 0,
   active: true,
@@ -94,6 +95,16 @@ export default function ProductForm() {
 
         <label>Descripción</label>
         <textarea value={model.description ?? ""} onChange={(e)=>setField("description", e.target.value)} />
+
+        <label>URL de imagen</label>
+        <input
+          placeholder="https://ejemplo.com/imagen.jpg"
+          value={model.image_url ?? ""}
+          onChange={(e)=>setField("image_url", e.target.value)}
+        />
+        {model.image_url && (
+          <img src={model.image_url} alt="preview" style={{ width: 100, height: 100, objectFit: "cover", borderRadius: 4 }} />
+        )}
 
         <label>Precio</label>
         <input type="number" step="0.01" value={model.price} onChange={(e)=>setField("price", e.target.value)} />

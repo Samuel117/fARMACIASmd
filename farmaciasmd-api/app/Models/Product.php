@@ -12,6 +12,7 @@ class Product extends Model
         'brand',
         'category',
         'description',
+        'image_url',
         'price',
         'min_stock',
         'active'
