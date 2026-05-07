@@ -10,28 +10,44 @@ use Illuminate\Validation\Rule;
 
 class UserController extends Controller
 {
+    private function userFields(User $user): array
+    {
+        return [
+            'id'         => $user->id,
+            'name'       => $user->name,
+            'email'      => $user->email,
+            'role'       => $user->role,
+            'branch_id'  => $user->branch_id,
+            'branch'     => $user->branch ? ['id' => $user->branch->id, 'name' => $user->branch->name] : null,
+            'created_at' => $user->created_at,
+        ];
+    }
+
     public function index()
     {
-        $users = User::select('id', 'name', 'email', 'role', 'created_at')
+        $users = User::with('branch:id,name')
             ->orderBy('id', 'desc')
-            ->get();
+            ->get()
+            ->map(fn($u) => $this->userFields($u));
 
         return response()->json([
-            'success' => true,
-            'message' => 'Listado de usuarios',
-            'data' => $users,
-            'errors' => null,
+            'success'   => true,
+            'message'   => 'Listado de usuarios',
+            'data'      => $users,
+            'errors'    => null,
             'timestamp' => now()->toISOString(),
         ]);
     }
 
     public function show(User $user)
     {
+        $user->load('branch:id,name');
+
         return response()->json([
-            'success' => true,
-            'message' => 'Detalle de usuario',
-            'data' => $user->only('id', 'name', 'email', 'role', 'created_at'),
-            'errors' => null,
+            'success'   => true,
+            'message'   => 'Detalle de usuario',
+            'data'      => $this->userFields($user),
+            'errors'    => null,
             'timestamp' => now()->toISOString(),
         ]);
     }
@@ -39,24 +55,28 @@ class UserController extends Controller
     public function store(Request $request)
     {
         $data = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'unique:users,email'],
-            'password' => ['required', 'string', 'min:8'],
-            'role' => ['required', Rule::in(['admin', 'employee'])],
+            'name'      => ['required', 'string', 'max:255'],
+            'email'     => ['required', 'email', 'unique:users,email'],
+            'password'  => ['required', 'string', 'min:8'],
+            'role'      => ['required', Rule::in(['admin', 'employee'])],
+            'branch_id' => ['nullable', 'exists:branches,id'],
         ]);
 
         $user = User::create([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'password' => Hash::make($data['password']),
-            'role' => $data['role'],
+            'name'      => $data['name'],
+            'email'     => $data['email'],
+            'password'  => Hash::make($data['password']),
+            'role'      => $data['role'],
+            'branch_id' => $data['branch_id'] ?? null,
         ]);
 
+        $user->load('branch:id,name');
+
         return response()->json([
-            'success' => true,
-            'message' => 'Usuario creado',
-            'data' => $user->only('id', 'name', 'email', 'role', 'created_at'),
-            'errors' => null,
+            'success'   => true,
+            'message'   => 'Usuario creado',
+            'data'      => $this->userFields($user),
+            'errors'    => null,
             'timestamp' => now()->toISOString(),
         ], 201);
     }
@@ -64,27 +84,30 @@ class UserController extends Controller
     public function update(Request $request, User $user)
     {
         $data = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', Rule::unique('users', 'email')->ignore($user->id)],
-            'password' => ['nullable', 'string', 'min:8'],
-            'role' => ['required', Rule::in(['admin', 'employee'])],
+            'name'      => ['required', 'string', 'max:255'],
+            'email'     => ['required', 'email', Rule::unique('users', 'email')->ignore($user->id)],
+            'password'  => ['nullable', 'string', 'min:8'],
+            'role'      => ['required', Rule::in(['admin', 'employee'])],
+            'branch_id' => ['nullable', 'exists:branches,id'],
         ]);
 
-        $user->name = $data['name'];
-        $user->email = $data['email'];
-        $user->role = $data['role'];
+        $user->name      = $data['name'];
+        $user->email     = $data['email'];
+        $user->role      = $data['role'];
+        $user->branch_id = $data['branch_id'] ?? null;
 
         if (!empty($data['password'])) {
             $user->password = Hash::make($data['password']);
         }
 
         $user->save();
+        $user->load('branch:id,name');
 
         return response()->json([
-            'success' => true,
-            'message' => 'Usuario actualizado',
-            'data' => $user->only('id', 'name', 'email', 'role', 'created_at'),
-            'errors' => null,
+            'success'   => true,
+            'message'   => 'Usuario actualizado',
+            'data'      => $this->userFields($user),
+            'errors'    => null,
             'timestamp' => now()->toISOString(),
         ]);
     }
@@ -93,10 +116,10 @@ class UserController extends Controller
     {
         if ($request->user()->id === $user->id) {
             return response()->json([
-                'success' => false,
-                'message' => 'No puedes eliminar tu propio usuario.',
-                'data' => null,
-                'errors' => null,
+                'success'   => false,
+                'message'   => 'No puedes eliminar tu propio usuario.',
+                'data'      => null,
+                'errors'    => null,
                 'timestamp' => now()->toISOString(),
             ], 422);
         }
@@ -105,10 +128,10 @@ class UserController extends Controller
         $user->delete();
 
         return response()->json([
-            'success' => true,
-            'message' => 'Usuario eliminado',
-            'data' => null,
-            'errors' => null,
+            'success'   => true,
+            'message'   => 'Usuario eliminado',
+            'data'      => null,
+            'errors'    => null,
             'timestamp' => now()->toISOString(),
         ]);
     }

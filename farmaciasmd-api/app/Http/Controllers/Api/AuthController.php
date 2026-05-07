@@ -35,10 +35,11 @@ class AuthController extends Controller
             'data' => [
                 'token' => $token,
                 'user' => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'role' => $user->role,
+                    'id'        => $user->id,
+                    'name'      => $user->name,
+                    'email'     => $user->email,
+                    'role'      => $user->role,
+                    'branch_id' => $user->branch_id,
                 ]
             ],
             'errors' => null,
@@ -54,10 +55,11 @@ class AuthController extends Controller
             'success' => true,
             'message' => 'Perfil',
             'data' => [
-                'id' => $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'role' => $user->role,
+                'id'        => $user->id,
+                'name'      => $user->name,
+                'email'     => $user->email,
+                'role'      => $user->role,
+                'branch_id' => $user->branch_id,
             ],
             'errors' => null,
             'timestamp' => now()->toISOString(),

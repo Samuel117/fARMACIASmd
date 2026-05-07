@@ -10,6 +10,7 @@ use App\Http\Controllers\Api\SaleController;
 use App\Http\Controllers\Api\ReportController;
 use App\Http\Controllers\Api\DashboardController;
 use App\Http\Controllers\Api\UserController;
+use App\Http\Controllers\Api\AuditController;
 
 Route::get('/health', fn() => response()->json(['status' => 'ok']));
 
@@ -53,5 +54,6 @@ Route::middleware('auth:sanctum')->group(function () {
         Route::get('/reports/low-stock', [ReportController::class, 'lowStock']);
 
         Route::apiResource('users', UserController::class);
+        Route::get('/audit', [AuditController::class, 'index']);
     });
 });
