@@ -30,7 +30,8 @@
       "Bash(php artisan:*)",
       "WebFetch(domain:github.com)",
       "WebFetch(domain:docs.railway.com)",
-      "Bash(xargs ls *)"
+      "Bash(xargs ls *)",
+      "Bash(Get-ChildItem -Path \"f:\\\\Samuel\\\\fARMACIASmd\\\\farmaciasmd-web\\\\src\\\\\" -Recurse -File | Select-Object FullName)"
     ]
   }
 }

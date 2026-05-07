@@ -3,69 +3,51 @@ import { useNavigate, useParams, Link } from "react-router-dom";
 import * as ProductsApi from "../api/products";
 
 const empty = {
-  sku: "",
-  name: "",
-  brand: "",
-  category: "",
-  description: "",
-  image_url: "",
-  price: 0,
-  min_stock: 0,
-  active: true,
+  sku: "", name: "", brand: "", category: "",
+  description: "", image_url: "", price: 0, min_stock: 0, active: true,
 };
 
 export default function ProductForm() {
-  const { id } = useParams();
-  const isEdit = Boolean(id);
-  const nav = useNavigate();
-
-  const [model, setModel] = useState(empty);
-  const [err, setErr] = useState("");
+  const { id }   = useParams();
+  const isEdit   = Boolean(id);
+  const nav      = useNavigate();
+  const [model,  setModel]  = useState(empty);
+  const [err,    setErr]    = useState("");
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     if (!isEdit) return;
-    (async () => {
-      try {
-        const resp = await ProductsApi.getProduct(id);
-        setModel(resp.data);
-      } catch (ex) {
-        setErr(ex?.response?.data?.message ?? "Error cargando producto");
-      }
-    })();
+    ProductsApi.getProduct(id)
+      .then((r) => setModel(r.data))
+      .catch((ex) => setErr(ex?.response?.data?.message ?? "Error cargando producto"));
   }, [id]);
 
-  function setField(k, v) {
-    setModel((m) => ({ ...m, [k]: v }));
-  }
+  const set = (k, v) => setModel((m) => ({ ...m, [k]: v }));
 
   async function save(e) {
     e.preventDefault();
     setErr("");
-    const payload = {
-      ...model,
-      price: Number(model.price),
-      min_stock: Number(model.min_stock),
-      active: Boolean(model.active),
-    };
-
+    setSaving(true);
+    const payload = { ...model, price: Number(model.price), min_stock: Number(model.min_stock), active: Boolean(model.active) };
     try {
       if (isEdit) await ProductsApi.updateProduct(id, payload);
-      else await ProductsApi.createProduct(payload);
+      else        await ProductsApi.createProduct(payload);
       nav("/products");
     } catch (ex) {
       const data = ex?.response?.data;
       if (data?.errors) {
-        const firstKey = Object.keys(data.errors)[0];
-        setErr(data.errors[firstKey][0]);
+        const k = Object.keys(data.errors)[0];
+        setErr(data.errors[k][0]);
       } else {
         setErr(data?.message ?? "Error guardando");
       }
+    } finally {
+      setSaving(false);
     }
   }
 
   async function remove() {
-    if (!confirm("¿Eliminar producto?")) return;
-    setErr("");
+    if (!confirm("¿Eliminar este producto?")) return;
     try {
       await ProductsApi.deleteProduct(id);
       nav("/products");
@@ -75,55 +57,87 @@ export default function ProductForm() {
   }
 
   return (
-    <div style={{ padding: 16, maxWidth: 700 }}>
-      <h2>{isEdit ? "Editar producto" : "Nuevo producto"}</h2>
-
-      {err && <div style={{ color: "crimson", marginBottom: 12 }}>{err}</div>}
-
-      <form onSubmit={save} style={{ display: "grid", gap: 10 }}>
-        <label>SKU</label>
-        <input value={model.sku} onChange={(e)=>setField("sku", e.target.value)} />
-
-        <label>Nombre</label>
-        <input value={model.name} onChange={(e)=>setField("name", e.target.value)} />
-
-        <label>Marca</label>
-        <input value={model.brand ?? ""} onChange={(e)=>setField("brand", e.target.value)} />
-
-        <label>Categoría</label>
-        <input value={model.category ?? ""} onChange={(e)=>setField("category", e.target.value)} />
-
-        <label>Descripción</label>
-        <textarea value={model.description ?? ""} onChange={(e)=>setField("description", e.target.value)} />
-
-        <label>URL de imagen</label>
-        <input
-          placeholder="https://ejemplo.com/imagen.jpg"
-          value={model.image_url ?? ""}
-          onChange={(e)=>setField("image_url", e.target.value)}
-        />
-        {model.image_url && (
-          <img src={model.image_url} alt="preview" style={{ width: 100, height: 100, objectFit: "cover", borderRadius: 4 }} />
-        )}
-
-        <label>Precio</label>
-        <input type="number" step="0.01" value={model.price} onChange={(e)=>setField("price", e.target.value)} />
-
-        <label>Stock mínimo</label>
-        <input type="number" value={model.min_stock} onChange={(e)=>setField("min_stock", e.target.value)} />
-
-        <label>Activo</label>
-        <select value={model.active ? "1" : "0"} onChange={(e)=>setField("active", e.target.value === "1")}>
-          <option value="1">Sí</option>
-          <option value="0">No</option>
-        </select>
-
-        <div style={{ display: "flex", gap: 8, marginTop: 10 }}>
-          <button type="submit">Guardar</button>
-          <Link to="/products"><button type="button">Cancelar</button></Link>
-          {isEdit && <button type="button" onClick={remove}>Eliminar</button>}
+    <>
+      <div className="page-header">
+        <div>
+          <div className="page-title">{isEdit ? "Editar producto" : "Nuevo producto"}</div>
+          <div className="page-subtitle">
+            {isEdit ? `Editando producto #${id}` : "Completa los campos para crear un producto"}
+          </div>
         </div>
-      </form>
-    </div>
+      </div>
+
+      {err && <div className="alert alert-danger">{err}</div>}
+
+      <div className="card" style={{ maxWidth: 680 }}>
+        <form onSubmit={save} className="form-grid">
+          <div className="form-row">
+            <div className="form-group">
+              <label className="form-label">SKU *</label>
+              <input className="form-input" value={model.sku} onChange={(e) => set("sku", e.target.value)} required />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Nombre *</label>
+              <input className="form-input" value={model.name} onChange={(e) => set("name", e.target.value)} required />
+            </div>
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label className="form-label">Marca</label>
+              <input className="form-input" value={model.brand ?? ""} onChange={(e) => set("brand", e.target.value)} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Categoría</label>
+              <input className="form-input" value={model.category ?? ""} onChange={(e) => set("category", e.target.value)} />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Descripción</label>
+            <textarea className="form-textarea" value={model.description ?? ""} onChange={(e) => set("description", e.target.value)} />
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">URL de imagen</label>
+            <input className="form-input" placeholder="https://ejemplo.com/imagen.jpg" value={model.image_url ?? ""} onChange={(e) => set("image_url", e.target.value)} />
+            {model.image_url && (
+              <img src={model.image_url} alt="preview" className="img-preview" style={{ marginTop: 8 }} />
+            )}
+          </div>
+
+          <div className="form-row">
+            <div className="form-group">
+              <label className="form-label">Precio *</label>
+              <input className="form-input" type="number" step="0.01" min="0" value={model.price} onChange={(e) => set("price", e.target.value)} required />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Stock mínimo *</label>
+              <input className="form-input" type="number" min="0" value={model.min_stock} onChange={(e) => set("min_stock", e.target.value)} required />
+            </div>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">Estado</label>
+            <select className="form-select" value={model.active ? "1" : "0"} onChange={(e) => set("active", e.target.value === "1")}>
+              <option value="1">Activo</option>
+              <option value="0">Inactivo</option>
+            </select>
+          </div>
+
+          <div className="form-actions">
+            <button type="submit" className="btn btn-primary" disabled={saving}>
+              {saving ? <><span className="spinner" /> Guardando…</> : "Guardar producto"}
+            </button>
+            <Link to="/products" className="btn btn-secondary">Cancelar</Link>
+            {isEdit && (
+              <button type="button" className="btn btn-danger" onClick={remove} style={{ marginLeft: "auto" }}>
+                Eliminar
+              </button>
+            )}
+          </div>
+        </form>
+      </div>
+    </>
   );
 }

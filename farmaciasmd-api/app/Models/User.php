@@ -15,6 +15,7 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
+        'branch_id',
     ];
 
     protected $hidden = [
@@ -30,5 +31,10 @@ class User extends Authenticatable
     public function isEmployee(): bool
     {
         return $this->role === 'employee';
+    }
+
+    public function branch()
+    {
+        return $this->belongsTo(\App\Models\Branch::class);
     }
 }

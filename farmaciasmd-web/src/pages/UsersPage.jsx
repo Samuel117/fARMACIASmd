@@ -3,23 +3,26 @@ import { Link } from "react-router-dom";
 import * as UsersApi from "../api/users";
 
 export default function UsersPage() {
-  const [users, setUsers] = useState([]);
-  const [err, setErr] = useState("");
+  const [users,   setUsers]   = useState([]);
+  const [err,     setErr]     = useState("");
+  const [loading, setLoading] = useState(false);
 
   async function load() {
-    setErr("");
+    setErr(""); setLoading(true);
     try {
-      const resp = await UsersApi.listUsers();
-      setUsers(resp.data);
+      const r = await UsersApi.listUsers();
+      setUsers(r.data);
     } catch (ex) {
       setErr(ex?.response?.data?.message ?? "Error cargando usuarios");
+    } finally {
+      setLoading(false);
     }
   }
 
   useEffect(() => { load(); }, []);
 
   async function remove(id) {
-    if (!confirm("¿Eliminar usuario?")) return;
+    if (!confirm("¿Eliminar este usuario?")) return;
     try {
       await UsersApi.deleteUser(id);
       load();
@@ -29,50 +32,63 @@ export default function UsersPage() {
   }
 
   return (
-    <div style={{ padding: 16 }}>
-      <h2>Usuarios</h2>
-
-      <div style={{ marginBottom: 12 }}>
-        <Link to="/users/new"><button>Nuevo usuario</button></Link>
+    <>
+      <div className="page-header">
+        <div>
+          <div className="page-title">Usuarios</div>
+          <div className="page-subtitle">Gestión de accesos y roles del sistema</div>
+        </div>
+        <Link to="/users/new" className="btn btn-primary">+ Nuevo usuario</Link>
       </div>
 
-      {err && <div style={{ color: "crimson", marginBottom: 12 }}>{err}</div>}
+      {err && <div className="alert alert-danger">{err}</div>}
+      {loading && <div className="loading-page"><span className="spinner" /> Cargando…</div>}
 
-      <table width="100%" cellPadding="8" style={{ borderCollapse: "collapse" }}>
-        <thead>
-          <tr style={{ textAlign: "left", borderBottom: "1px solid #444" }}>
-            <th>Nombre</th>
-            <th>Email</th>
-            <th>Rol</th>
-            <th>Creado</th>
-            <th></th>
-          </tr>
-        </thead>
-        <tbody>
-          {users.map((u) => (
-            <tr key={u.id} style={{ borderBottom: "1px solid #333" }}>
-              <td>{u.name}</td>
-              <td>{u.email}</td>
-              <td>
-                <span style={{
-                  padding: "2px 8px",
-                  borderRadius: 4,
-                  background: u.role === "admin" ? "#4a90d9" : "#5a8a5a",
-                  color: "#fff",
-                  fontSize: 12,
-                }}>
-                  {u.role === "admin" ? "Administrador" : "Empleado"}
-                </span>
-              </td>
-              <td>{new Date(u.created_at).toLocaleDateString("es-MX")}</td>
-              <td style={{ display: "flex", gap: 8 }}>
-                <Link to={`/users/${u.id}/edit`}><button>Editar</button></Link>
-                <button onClick={() => remove(u.id)} style={{ color: "crimson" }}>Eliminar</button>
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
-    </div>
+      {!loading && (
+        <div className="table-wrap">
+          <table className="tbl">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Email</th>
+                <th>Rol</th>
+                <th>Sucursal asignada</th>
+                <th>Creado</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.length === 0 && (
+                <tr><td colSpan={6}>
+                  <div className="empty-state">
+                    <div className="empty-state-title">Sin usuarios</div>
+                  </div>
+                </td></tr>
+              )}
+              {users.map((u) => (
+                <tr key={u.id}>
+                  <td style={{ fontWeight: 500 }}>{u.name}</td>
+                  <td className="text-muted">{u.email}</td>
+                  <td>
+                    {u.role === "admin"
+                      ? <span className="badge badge-primary">Administrador</span>
+                      : <span className="badge badge-success">Empleado</span>
+                    }
+                  </td>
+                  <td className="text-muted">{u.branch?.name ?? <span style={{ color: "var(--text-3)" }}>Sin asignar</span>}</td>
+                  <td className="text-muted">{new Date(u.created_at).toLocaleDateString("es-MX")}</td>
+                  <td>
+                    <div style={{ display: "flex", gap: 6 }}>
+                      <Link to={`/users/${u.id}/edit`} className="btn btn-ghost btn-sm">Editar</Link>
+                      <button className="btn btn-danger btn-sm" onClick={() => remove(u.id)}>Eliminar</button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </>
   );
 }
