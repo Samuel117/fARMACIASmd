@@ -31,7 +31,16 @@
       "WebFetch(domain:github.com)",
       "WebFetch(domain:docs.railway.com)",
       "Bash(xargs ls *)",
-      "Bash(Get-ChildItem -Path \"f:\\\\Samuel\\\\fARMACIASmd\\\\farmaciasmd-web\\\\src\\\\\" -Recurse -File | Select-Object FullName)"
+      "Bash(Get-ChildItem -Path \"f:\\\\Samuel\\\\fARMACIASmd\\\\farmaciasmd-web\\\\src\\\\\" -Recurse -File | Select-Object FullName)",
+      "Bash(git -C /f/Samuel/fARMACIASmd status)",
+      "Bash(git -C /f/Samuel/fARMACIASmd/farmaciasmd-web status)",
+      "Bash(git -C /f/Samuel/fARMACIASmd/farmaciasmd-api status)",
+      "Bash(git -C /f/Samuel/fARMACIASmd diff --stat HEAD)",
+      "Bash(git -C /f/Samuel/fARMACIASmd ls-files farmaciasmd-web/src/pages/ReportsPage.jsx)",
+      "Bash(git -C /f/Samuel/fARMACIASmd ls-files farmaciasmd-web/src/index.css)",
+      "Bash(git -C /f/Samuel/fARMACIASmd status farmaciasmd-web/src/pages/ReportsPage.jsx)",
+      "Bash(git -C /f/Samuel/fARMACIASmd log --oneline -5)",
+      "Bash(git -C /f/Samuel/fARMACIASmd show HEAD --stat)"
     ]
   }
 }
